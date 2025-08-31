@@ -3,7 +3,7 @@
 
 ## 📌 Overview
 A **production-ready Slack chatbot** that processes both **text and voice inputs**, provides **AI-powered context-aware replies**, and supports **multi-thread conversations**.  
-Built with **Node.js, Slack Bolt SDK, and OpenAI APIs**, it is designed for **scalability, reliability, and deployment in production environments** (Docker + Kubernetes).  
+ 
 
 ---
 
