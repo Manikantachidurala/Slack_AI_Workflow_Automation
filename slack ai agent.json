@@ -1,0 +1,552 @@
+{
+  "name": "slack ai agent",
+  "nodes": [
+    {
+      "parameters": {
+        "trigger": [
+          "message"
+        ],
+        "channelId": {
+          "__rl": true,
+          "value": "C09CPK7T0H4",
+          "mode": "list",
+          "cachedResultName": "chatbot"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.slackTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1200,
+        64
+      ],
+      "id": "69ee7dfa-cd4e-4f91-ac08-930fa8bdd5e7",
+      "name": "Slack Trigger",
+      "webhookId": "37e104a1-d312-4339-bfa7-72a841bf21d5",
+      "credentials": {
+        "slackApi": {
+          "id": "NwhOqgCVu7yXlQHT",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.text }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        -112,
+        32
+      ],
+      "id": "ff38f66b-a6e0-4bd4-a7b6-b5da47cd2531",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C09CPK7T0H4",
+          "mode": "list",
+          "cachedResultName": "chatbot"
+        },
+        "text": "={{ $json.output }}",
+        "otherOptions": {
+          "includeLinkToWorkflow": false,
+          "thread_ts": {
+            "replyValues": {
+              "thread_ts": "={{ $('Slack Trigger').item.json?.thread_ts ?? $('Slack Trigger').item.json.ts }}",
+              "reply_broadcast": true
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        304,
+        48
+      ],
+      "id": "9bed387d-e632-4271-9345-46cef7d8fcec",
+      "name": "Send a message",
+      "webhookId": "a9b8fe84-8931-474a-8362-e092df4103bb",
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "9li4h5yLQFFhlMaU",
+          "name": "Slack account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Slack Trigger').item.json?.thread_ts ?? $('Slack Trigger').item.json.ts }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        304
+      ],
+      "id": "fabe4223-f132-435f-880a-f5185ff70705",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "b9231e63-c641-4f20-834d-f83e4dd80f8c",
+              "leftValue": "={{ $json.bot_id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notExists",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "bcc9aa60-a904-4ea3-91d9-d1dfb731c020",
+              "leftValue": "={{ $json.text }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        -928,
+        64
+      ],
+      "id": "39806ecb-0880-4409-9db8-34ef4428667c",
+      "name": "Filter"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.files[0].url_private_download }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "exists",
+                      "singleValue": true
+                    },
+                    "id": "1eaf19ac-fe22-4635-b843-1828b0ce26bb"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "=Voice"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "fe150182-749a-4204-b120-7a62d94dfa25",
+                    "leftValue": "={{ $json.blocks[0].elements[0].elements[0].text }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "exists",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "text_thread"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "b5e1f0f2-8c38-4066-8620-b06fb0d663ca",
+      "name": "Switch",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -688,
+        48
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.files[0].url_private_download }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "slackApi",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -448,
+        -96
+      ],
+      "id": "ee0bc428-ce56-46fd-a6cf-206cc960b5fd",
+      "name": "HTTP Request",
+      "credentials": {
+        "slackApi": {
+          "id": "NwhOqgCVu7yXlQHT",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "audio",
+        "operation": "transcribe",
+        "options": {}
+      },
+      "id": "03691109-2e2f-4bb5-a9da-1ec750c81613",
+      "name": "Transcribe Audio",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.6,
+      "position": [
+        -256,
+        -96
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "aibYgCbgmmR8LDWI",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -160,
+        304
+      ],
+      "id": "41182ec6-c509-4c44-afb7-1add7c985cd5",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "aibYgCbgmmR8LDWI",
+          "name": "OpenAi account"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "Slack Trigger": [
+      {
+        "json": {
+          "text": "",
+          "files": [
+            {
+              "id": "F09CNP4H4FL",
+              "created": 1756476783,
+              "timestamp": 1756476783,
+              "name": "audio_message.m4a",
+              "title": "audio_message.m4a",
+              "mimetype": "audio/mp4",
+              "filetype": "m4a",
+              "pretty_type": "MPEG 4 Audio",
+              "user": "U098L8HV51T",
+              "user_team": "T098L8HV50D",
+              "editable": false,
+              "size": 25883,
+              "mode": "hosted",
+              "is_external": false,
+              "external_type": "",
+              "is_public": true,
+              "public_url_shared": false,
+              "display_as_bot": false,
+              "username": "",
+              "subtype": "slack_audio",
+              "transcription": {
+                "status": "complete",
+                "locale": "en-US",
+                "preview": {
+                  "content": "it's going",
+                  "has_more": false
+                }
+              },
+              "url_private": "https://files.slack.com/files-tmb/T098L8HV50D-F09CNP4H4FL-2f0a08ac96/audio_message_audio.mp4",
+              "url_private_download": "https://files.slack.com/files-tmb/T098L8HV50D-F09CNP4H4FL-2f0a08ac96/download/audio_message_audio.mp4",
+              "vtt": "https://files.slack.com/files-tmb/T098L8HV50D-F09CNP4H4FL-2f0a08ac96/file.vtt?_xcb=11ff8",
+              "duration_ms": 1520,
+              "aac": "https://files.slack.com/files-tmb/T098L8HV50D-F09CNP4H4FL-2f0a08ac96/audio_message_audio.mp4",
+              "audio_wave_samples": [
+                77,
+                89,
+                97,
+                94,
+                100,
+                83,
+                89,
+                90,
+                75,
+                55,
+                37,
+                48,
+                65,
+                52,
+                32,
+                18,
+                18,
+                4,
+                3,
+                3,
+                2,
+                2,
+                2,
+                1,
+                3,
+                3,
+                4,
+                12,
+                21,
+                34,
+                39,
+                39,
+                45,
+                50,
+                53,
+                70,
+                72,
+                76,
+                58,
+                19,
+                5,
+                3,
+                2,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                2,
+                4,
+                13,
+                25,
+                24,
+                20,
+                18,
+                13,
+                11,
+                7,
+                8,
+                8,
+                10,
+                11,
+                11,
+                9,
+                6,
+                4,
+                2,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                2,
+                2,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                2,
+                2,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1
+              ],
+              "media_display_type": "audio",
+              "permalink": "https://mani-ubl9887.slack.com/files/U098L8HV51T/F09CNP4H4FL/audio_message.m4a",
+              "permalink_public": "https://slack-files.com/T098L8HV50D-F09CNP4H4FL-dae739abcf",
+              "skipped_shares": true,
+              "has_rich_preview": false,
+              "file_access": "visible"
+            }
+          ],
+          "upload": false,
+          "user": "U098L8HV51T",
+          "display_as_bot": false,
+          "type": "message",
+          "ts": "1756476810.310869",
+          "client_msg_id": "c51868ef-fd59-48a3-a555-18fba866bb2c",
+          "thread_ts": "1756476702.301319",
+          "parent_user_id": "U098L8HV51T",
+          "channel": "C09CPK7T0H4",
+          "subtype": "file_share",
+          "event_ts": "1756476810.310869",
+          "channel_type": "channel"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Slack Trigger": {
+      "main": [
+        [
+          {
+            "node": "Filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Transcribe Audio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transcribe Audio": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "5b56c528-55f7-4756-9fe1-7e965270860f",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "40443155c69ddac0eaf9f6fb37b67e3a900af3d7a7188a159f22ded7e36ccced"
+  },
+  "id": "hPt3pZoI5cX4JkvL",
+  "tags": []
+}
