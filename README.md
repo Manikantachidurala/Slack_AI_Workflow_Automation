@@ -23,3 +23,5 @@ Built with **Node.js, Slack Bolt SDK, and OpenAI APIs**, it is designed for **sc
 
 
 ---
+## 🛠️ Demo
+- **https://www.loom.com/share/bf29e1ceec5e47aa9f67fbe5ff06ce9c?sid=eefb1957-b2ea-406f-b3ae-4f78325c33d8**
